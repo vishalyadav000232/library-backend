@@ -1,0 +1,1 @@
+# SQLAlchemy Booking model placeholder

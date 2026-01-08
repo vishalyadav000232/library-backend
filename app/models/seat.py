@@ -1,0 +1,1 @@
+# SQLAlchemy Seat model placeholder
