@@ -1,8 +1,17 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from app.api.v1.router import api_router
+from app.database.db import Base, engine
+from app.models.seats import Seat
+
+# ⭐ CRITICAL: import all models so SQLAlchemy registers tables
+from app.models import *  
 
 app = FastAPI(title="Yadav Ji Library API")
+
+# Create tables AFTER models are loaded
+Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
     CORSMiddleware,
