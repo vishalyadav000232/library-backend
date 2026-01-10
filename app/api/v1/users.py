@@ -1,12 +1,16 @@
 from fastapi import APIRouter, status, Depends, HTTPException
 from sqlalchemy.orm import Session
+from app.models.user import User 
+from app.services.user_services import get_current_user
+
 
 from app.database.db import get_db
 from app.schemas.user import (
     UserCreate,
     UserResponse,
     LoginUser,
-    LoginResponse
+    TokenResponse,
+    ProfileResoponse
 )
 from app.services.user_services import create_user, login_user
 
@@ -28,7 +32,7 @@ def signup(
 @router.post(
     "/login",
     status_code=status.HTTP_200_OK,
-    response_model=LoginResponse
+    response_model=TokenResponse
 )
 def login(
     user_data: LoginUser,
@@ -46,3 +50,11 @@ def login(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Something went wrong during login"
         )
+
+@router.get("/me" , status_code=status.HTTP_200_OK , response_model=ProfileResoponse)
+def get_profile(current_user: User = Depends(get_current_user)):
+    return {
+        "id": current_user.id,
+        "name": current_user.name,
+        "email": current_user.email
+    }

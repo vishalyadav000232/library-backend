@@ -41,3 +41,14 @@ class LoginResponse(BaseModel):
 
     class Config:
         from_attributes = True
+    
+class TokenResponse(BaseModel):
+    message: str
+    access_token: str
+    token_type: str
+
+
+class ProfileResoponse(BaseModel):
+    id:UUID
+    name : str
+    email: str
