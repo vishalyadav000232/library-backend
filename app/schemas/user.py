@@ -10,6 +10,7 @@ class UserCreate(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
     email: EmailStr
     password : str
+    role: Optional[str] = "STUDENT"
     
 
 class UserResponse(BaseModel):
@@ -45,6 +46,7 @@ class LoginResponse(BaseModel):
 class TokenResponse(BaseModel):
     message: str
     access_token: str
+    role : str
     token_type: str
 
 

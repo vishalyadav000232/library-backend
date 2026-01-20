@@ -10,3 +10,6 @@ class SeatResponse(BaseModel):
     id: UUID
     seat_number: str
     is_active: bool
+
+    class Config:
+        orm_mode = True

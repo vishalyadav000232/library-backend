@@ -1,9 +1,9 @@
-from fastapi import HTTPException, status ,Depends
+from fastapi import HTTPException, status, Depends
 from sqlalchemy.orm import Session
 from app.models.user import User
 from app.schemas.user import UserCreate, LoginUser
 from datetime import datetime, timedelta, timezone
-from jose import jwt , JWTError
+from jose import jwt, JWTError
 from dotenv import load_dotenv
 from typing import Annotated
 from fastapi.security import OAuth2PasswordBearer
@@ -13,8 +13,10 @@ import os
 load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
+oauth2_bearer = OAuth2PasswordBearer(tokenUrl="/api/v1/users/users/login")
 
-oauth2_bearer = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+
+
 def get_user_by_email(db: Session, email: str):
     return db.query(User).filter(User.email == email).first()
 
@@ -30,11 +32,11 @@ def create_user(db: Session, user_data: UserCreate) -> User:
     new_user = User(
         name=user_data.name,
         email=user_data.email,
-        
+        role = user_data.role,
+
     )
 
     new_user.set_password(user_data.password)
-
 
     db.add(new_user)
     db.commit()
@@ -54,7 +56,7 @@ def login_user(db: Session, user_data: LoginUser):
         )
 
     payload = {
-        "sub": str(user.id),                    # JWT standard
+        "sub": str(user.id),                   
         "role": user.role,
         "exp": datetime.now(timezone.utc) + timedelta(hours=12)
     }
@@ -62,8 +64,9 @@ def login_user(db: Session, user_data: LoginUser):
     token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
     return {
-        "message" : "User Successfully Login",
+        "message": "User Successfully Login",
         "access_token": token,
+        "role" : user.role,
         "token_type": "bearer"
     }
 
