@@ -18,3 +18,6 @@ def create_seat(db: Session, seat_data: SeatCreate):
     db.commit()
     db.refresh(seat)
     return seat
+
+
+

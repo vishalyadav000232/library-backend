@@ -15,7 +15,7 @@ if not DATABASE_URL:
 
 engine = create_engine(
     DATABASE_URL,
-    echo=True,        # shows SQL queries (DEV only)
+    echo=False,        # shows SQL queries (DEV only)
     future=True
 )
 

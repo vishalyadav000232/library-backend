@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel ,ConfigDict
 from uuid import UUID
 
 
@@ -14,4 +14,4 @@ class ShiftResponse(BaseModel):
     end_time: str
 
     class Config:
-        orm_mode = True
+        model_config = ConfigDict(from_attributes=True)

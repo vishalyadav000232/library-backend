@@ -13,7 +13,8 @@ import os
 load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
-oauth2_bearer = OAuth2PasswordBearer(tokenUrl="/api/v1/users/users/login")
+oauth2_bearer = OAuth2PasswordBearer(tokenUrl="/api/v1/users/login")
+
 
 
 
@@ -58,7 +59,8 @@ def login_user(db: Session, user_data: LoginUser):
     payload = {
         "sub": str(user.id),                   
         "role": user.role,
-        "exp": datetime.now(timezone.utc) + timedelta(hours=12)
+       "exp": datetime.now(timezone.utc) + timedelta(hours=6)
+
     }
 
     token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
