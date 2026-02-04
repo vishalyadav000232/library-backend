@@ -5,11 +5,15 @@ from typing import Optional
 class SeatCreate(BaseModel):
     seat_number: str
     is_active: Optional[bool ]  = True
+    floor : Optional[str]= "Ground floor"
 
 class SeatResponse(BaseModel):
     id: UUID
     seat_number: str
     is_active: bool
+    floor : str
+    seat_type : str
+    price : int
 
     class Config:
         model_config = ConfigDict(from_attributes=True)

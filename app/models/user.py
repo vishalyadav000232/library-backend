@@ -21,12 +21,12 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     create_at = Column(DateTime, default=datetime.utcnow)
 
-    # ✅ hash password
+    
     def set_password(self, password: str):
         truncate = truncate_password(password)
         self.hashed_password = pwd_context.hash(truncate)
 
-    # ✅ verify password
+    
     def verify_password(self, password: str) -> bool:
         truncate = truncate_password(password)
         return pwd_context.verify(truncate, self.hashed_password)

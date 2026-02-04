@@ -62,7 +62,7 @@ def del_seat(
     status_code=status.HTTP_200_OK
 )
 def get_seats(db: Session = Depends(get_db)):
-    seats = db.query(Seat).all()
+    seats = db.query(Seat).order_by( Seat.seat_number.asc()).all()
     return seats
 
 

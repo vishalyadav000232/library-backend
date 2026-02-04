@@ -11,9 +11,21 @@ from app.database.db import get_db
 import os
 
 load_dotenv()
+
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = "HS256"
-oauth2_bearer = OAuth2PasswordBearer(tokenUrl="/api/v1/users/login")
+oauth2_bearer = OAuth2PasswordBearer(
+    tokenUrl="/api/v1/users/login",
+    scheme_name="Authentication",
+    description=(
+        "OAuth2 Password Flow using Bearer Token.\n\n"
+        "How to use:\n"
+        "1) Call /api/v1/users/login with username & password\n"
+        "2) You will receive an access_token\n"
+        "3) Send it in header: Authorization: Bearer <access_token>\n\n"
+        "This dependency ONLY extracts the token from the request.\n"
+        "Token verification is done separately in get_current_user()."
+    ))
 
 
 
@@ -22,7 +34,7 @@ def get_user_by_email(db: Session, email: str):
     return db.query(User).filter(User.email == email).first()
 
 
-# ✅ SIGNUP
+
 def create_user(db: Session, user_data: UserCreate) -> User:
     if get_user_by_email(db, user_data.email):
         raise HTTPException(

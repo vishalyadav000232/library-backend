@@ -12,8 +12,11 @@ def create_seat(db: Session, seat_data: SeatCreate):
 
     seat = Seat(
         seat_number=seat_data.seat_number,
-        is_active=seat_data.is_active  # default True from schema
+        is_active=seat_data.is_active , # default True from schema
+        floor = seat_data.floor
+        
     )
+
     db.add(seat)
     db.commit()
     db.refresh(seat)
