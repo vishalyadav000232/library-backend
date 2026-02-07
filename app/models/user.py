@@ -30,3 +30,5 @@ class User(Base):
     def verify_password(self, password: str) -> bool:
         truncate = truncate_password(password)
         return pwd_context.verify(truncate, self.hashed_password)
+    def hello(self):
+        return "hello world"
