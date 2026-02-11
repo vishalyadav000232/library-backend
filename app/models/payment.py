@@ -1,8 +1,8 @@
 import uuid
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey , DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from app.database.db import Base
-
+from datetime import datetime
 
 class Payment(Base):
     __tablename__ = "payments"
@@ -25,3 +25,5 @@ class Payment(Base):
     provider = Column(String, default="razorpay")
 
     provider_payment_id = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+

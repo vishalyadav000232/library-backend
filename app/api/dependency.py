@@ -10,8 +10,8 @@ from app.repository.user_repository import UserRepository
 from app.auth.provider.token_provider import JWTTokenProvider
 from app.services.seat_services import SeatSearvice
 from app.repository.seat_repository import SeatRepository
-
-
+from app.services.report_service import ReportService
+from app.repository.report_repoitory import ReportFactoryInterface , ReportFactory
 from app.database.db import get_db
 from app.auth.deps import (
     get_token_provider,
@@ -59,3 +59,8 @@ def get_booking_service():
 
 def get_seat_service():
     return SeatSearvice(repo=SeatRepository())
+
+
+def get_report_service() -> ReportService:
+    factory = ReportFactory()   # concrete implementation
+    return ReportService(factory=factory)
