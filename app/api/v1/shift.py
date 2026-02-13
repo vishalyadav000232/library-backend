@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status 
 from sqlalchemy.orm import Session
 from app.database.db import get_db
-# from app.services.shift_services import create_shift
 from datetime import time
 from app.models.shift import Shift
+from app.services.shift_services import ShiftService
 router = APIRouter()
-
+from app.api.dependency import get_shift_service
 @router.post("/shifts", status_code=status.HTTP_201_CREATED ,)
-def create_shift_endpoint(name: str, start_time: str, end_time: str, db: Session = Depends(get_db)):
+def create_shift_endpoint(name: str, start_time: str, end_time: str, db: Session = Depends(get_db) , shift_service: ShiftService = Depends(get_shift_service)):
    
     try:
         start = time.fromisoformat(start_time)
@@ -16,7 +16,7 @@ def create_shift_endpoint(name: str, start_time: str, end_time: str, db: Session
         raise HTTPException(status_code=400, detail="Invalid time format. Use HH:MM.")
 
     try:
-        shift = create_shift(db, name, start, end)
+        shift = shift_service.create_shift(db, name, start, end)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

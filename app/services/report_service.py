@@ -6,8 +6,11 @@ from app.repository.report_repoitory import (
     ReportFactoryInterface,
     ReportRepository
 )
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 import os
+import pandas as pd
+from io import BytesIO
+
 
 class ReportService:
 
@@ -35,7 +38,7 @@ class ReportService:
         repository: ReportRepository = self.factory.get_report(report_type)
 
         return repository.generate_report(db, start, end)
-    
+
     def generate_report_pdf(
         self,
         db: Session,
@@ -43,16 +46,44 @@ class ReportService:
         start_date: date,
         end_date: date
     ):
-        data = self.generate_report(db , report_type , start_date , end_date)
+        data = self.generate_report(db, report_type, start_date, end_date)
 
-        
-        
         file_name = f"{report_type}_report_{start_date}_{end_date}.pdf"
 
-        file_path = generate_professional_pdf(data , file_name , report_type , start_date , end_date)
+        file_path = generate_professional_pdf(
+            data, file_name, report_type, start_date, end_date)
 
         return FileResponse(
             file_path,
             media_type="application/pdf",
             filename=file_name
+        )
+
+    def generate_report_excel(
+        self,
+        db: Session,
+        report_type: str,
+        start_date: date,
+        end_date: date
+    ):
+
+        # ⭐ same data jo JSON report me aata hai
+        data = self.generate_report(
+            db=db,
+            report_type=report_type,
+            start_date=start_date,
+            end_date=end_date
+        )
+
+        df = pd.DataFrame(data)
+
+        buffer = BytesIO()
+        df.to_excel(buffer, index=False)
+        buffer.seek(0)
+        return StreamingResponse(
+            buffer,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={
+                "Content-Disposition": f"attachment; filename={report_type}_report.xlsx"
+            }
         )

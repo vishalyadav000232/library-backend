@@ -53,3 +53,18 @@ def download_pdf_report(
         start_date=start_date,
         end_date=end_date
     )
+
+@router.get("/{report_type}/excel")
+def download_excel_report(
+    report_type: str,
+    start_date: date = Query(...),
+    end_date: date = Query(...),
+    db: Session = Depends(get_db),
+    report_service: ReportService = Depends(get_report_service)
+):
+    return report_service.generate_report_excel(
+        db=db,
+        report_type=report_type,
+        start_date=start_date,
+        end_date=end_date
+    )

@@ -110,7 +110,7 @@ def generate_professional_pdf(data, filename, report_type, start_date, end_date)
             value = str(row.get(h, ""))
 
             # Trim long UUID for readability
-            if h.lower() == "id" and len(value) > 12:
+            if h.lower() == "id" and len(value) > 15:
                 value = value[:15] + "..."
 
             row_data.append(Paragraph(value, wrap_style))
@@ -124,7 +124,7 @@ def generate_professional_pdf(data, filename, report_type, start_date, end_date)
         h_lower = h.lower()
 
         if h_lower == "id":
-            col_widths.append(available_width * 0.10)
+            col_widths.append(available_width * 0.34)
         elif "email" in h_lower:
             col_widths.append(available_width * 0.22)
         elif "name" in h_lower:
