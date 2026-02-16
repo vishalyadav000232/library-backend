@@ -6,7 +6,7 @@ from app.utils.booking_utils import normalize_date
 from app.repository.booking_repository import BookingRepository , BookingRepositoryBase
 import uuid
 from abc import ABC , abstractmethod
-
+from app.schemas.booking import BookingReport
 class BookingServiceBase(ABC):
     
     @abstractmethod
@@ -27,6 +27,10 @@ class BookingServiceBase(ABC):
     
     @abstractmethod
     def my_bookings(self, db: Session, user_id):
+        pass
+
+    @abstractmethod
+    def get_booking_report(self , db :Session):
         pass
 
 
@@ -110,4 +114,48 @@ class BookingService(BookingServiceBase):
         )
     
     def my_bookings(self, db: Session, user_id):   
-        return self.repo.my_booking(db, user_id)    
+        return self.repo.my_booking(db, user_id)  
+
+    def get_booking_report(self , db :Session):
+        rows = self.repo.get_full_booking_data(db)
+
+
+        result = []
+
+        for booking , user , seat , payment  , shift in rows:
+            result.append(
+                    BookingReport(
+                    booking_id=booking.id,
+                    booking_date=booking.start_date,
+                    status=booking.status,
+                    user={
+                        "id": user.id,
+                        "name": user.name,
+                        "email": user.email
+                    },
+                    seat={
+                        "seat_number": seat.seat_number,
+                        "floor": seat.floor,
+                        "amount": seat.price
+                    },
+                    payment={
+                        "amount": payment.amount if payment else None,
+                        "status": payment.status if payment else "pending"
+                    },
+                    shift= {
+                        "name" : shift.name,
+                        "start_time" : shift.start_time,
+                        "end_time" : shift.end_time
+                    }
+
+
+
+                    
+
+                )
+            )
+
+        return result
+            
+
+

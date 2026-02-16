@@ -10,8 +10,26 @@ from app.models.user import User
 from app.api.dependency import get_current_user, get_booking_service
 
 
+
+from app.models.booking import Booking
+from app.models.user import User
+from app.models.seats import Seat
+from  app.models.payment import Payment
+
 from app.services.booking_service import BookingService
 router = APIRouter(prefix="/bookings", tags=["Bookings"])
+
+
+
+@router.get("/all")
+def get_all_booking_data(
+    db: Session = Depends(get_db),
+    booking_service: BookingService = Depends(get_booking_service)
+    ):
+    return booking_service.get_booking_report(db)
+
+
+    
 
 
 # ✅ 1) Create booking
@@ -58,4 +76,5 @@ def my_bookings(
     booking_service: BookingService = Depends(get_booking_service)
 ):
     return booking_service.my_bookings(db, current_user.id)
-   
+
+

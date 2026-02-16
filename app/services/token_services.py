@@ -12,12 +12,13 @@ load_dotenv()
 
 
 class TokenService():
+
     def __init__(self):
         self.SECRET_KEY = os.getenv("SECRET_KEY")
         if not self.SECRET_KEY:
             raise RuntimeError("SECRET_KEY not set")
         self.ALGORITHM = 'HS256'
-        self.EXPIRY  = 6 # IN HOURS 
+        self.EXPIRY  = 6 
 
 
     def create_token(self , user_id : UUID , role :str ):

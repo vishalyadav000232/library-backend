@@ -25,7 +25,6 @@ class UserResponse(BaseModel):
     class Config:
         from_attributes = True
 
-# LOGIN USER SCHEMA (PYDANTIC SHCEMA)
 
 class LoginUser(BaseModel):
     email : EmailStr
@@ -55,3 +54,8 @@ class ProfileResponse(BaseModel):
     name : str
     email: str
     role :str
+    
+class UserUpdate(BaseModel):
+    name : Optional[str] = None
+    role : Optional[str] = None
+    is_active : Optional[bool] = None

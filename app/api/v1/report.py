@@ -16,7 +16,7 @@ router = APIRouter(prefix="/reports", tags=["Reports"])
     response_model=ReportResponse
 )
 def generate_report(
-    report_type: str = Path(..., description="Type of report to generate" , example=['users', 'bookings', 'payments']),
+    report_type: str = Path(..., description="Type of report to generate" , examples="users"),
     start_date: date = Query(..., description="Start date in YYYY-MM-DD format"),
     end_date: date = Query(..., description="End date in YYYY-MM-DD format"),
     db: Session = Depends(get_db),

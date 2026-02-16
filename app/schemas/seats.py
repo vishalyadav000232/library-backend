@@ -21,4 +21,5 @@ class SeatResponse(BaseModel):
 
 class SeatUpdate(BaseModel):
     seat_number: Optional[str] = None
+    floor: Optional[int] = None
     is_active: Optional[bool] = None

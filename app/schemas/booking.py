@@ -1,6 +1,8 @@
 from pydantic import BaseModel, Field , field_validator
 from uuid import UUID
 from datetime import date
+from typing import Optional
+from datetime import time
 
 
 class BookingCreate(BaseModel):
@@ -24,4 +26,37 @@ class BookingResponse(BaseModel):
     start_date: date
     end_date: date
     status: str
+
+
+
+class UserInfo(BaseModel):
+    id: UUID
+    name: str
+    email: str
+
+
+class SeatInfo(BaseModel):
+    seat_number: str
+    floor: str
+    amount: float
+
+
+class PaymentInfo(BaseModel):
+    amount: Optional[float]
+    status: str
+ 
+class ShiftInfo(BaseModel):
+    name: str
+    start_time: time
+    end_time: time
+
+class BookingReport(BaseModel):
+    booking_id: UUID
+    booking_date: date
+    status : str
+    user: UserInfo
+    seat: SeatInfo
+    shift: ShiftInfo
+    payment: PaymentInfo
+
 

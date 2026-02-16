@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.services.auth_services import UserServices
 from app.repository.user_repository import UserRepository
 from app.auth.provider.token_provider import JWTTokenProvider
-from app.services.seat_services import SeatSearvice
+from app.services.seat_services import SeatService
 from app.repository.seat_repository import SeatRepository
 from app.services.report_service import ReportService
 from app.repository.report_repoitory import   ReportFactory
@@ -60,7 +60,7 @@ def get_booking_service():
 
 
 def get_seat_service():
-    return SeatSearvice(repo=SeatRepository())
+    return SeatService(repo=SeatRepository())
 
 
 def get_report_service() -> ReportService:

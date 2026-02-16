@@ -6,7 +6,6 @@ from app.models.payment import Payment
 from app.models.user import User
 from typing import List, Dict
 
-
 class ReportRepository(ABC):
     @abstractmethod
     def generate_report(self, db: Session,  start_date: datetime, end_date: datetime) -> List[Dict]:

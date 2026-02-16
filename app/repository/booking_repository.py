@@ -7,6 +7,11 @@ from sqlalchemy.orm import Session
 from app.models.booking import Booking
 from uuid import UUID
 from typing import List, Optional
+from app.models.payment import Payment
+from app.models.user import User
+from app.models.seats import Seat
+from app.models.shift import Shift
+
 
 class BookingRepositoryBase(ABC):
 
@@ -42,6 +47,10 @@ class BookingRepositoryBase(ABC):
 
     @abstractmethod
     def my_booking(self, db: Session, user_id: UUID) -> List[Booking]:
+        pass
+    
+    @abstractmethod
+    def get_full_booking_data(self, db: Session):
         pass
 
 class BookingRepository(BookingRepositoryBase):
@@ -128,3 +137,13 @@ class BookingRepository(BookingRepositoryBase):
 
     def my_booking(self, db: Session, user_id):
         return db.query(Booking).filter(Booking.user_id == user_id).all()
+    
+    def get_full_booking_data(self, db: Session):
+        return (
+            db.query(Booking, User, Seat, Payment , Shift)
+            .join(User, Booking.user_id == User.id)
+            .join(Seat, Booking.seat_id == Seat.id)
+            .join(Shift , Booking.shift_id == Shift.id)
+            .outerjoin(Payment, Payment.booking_id == Booking.id)
+            .all()
+        )

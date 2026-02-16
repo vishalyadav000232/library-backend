@@ -45,6 +45,8 @@ class UserRepository(UserRepositoryBase):
         db.commit()
         db.refresh(user)
         return user
+    
+    
     def delete_user(self , db : Session , user_id):
         user = self.get_user_by_id(db , user_id)
         if user:
