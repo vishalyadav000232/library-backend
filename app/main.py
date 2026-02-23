@@ -4,6 +4,7 @@ from app.api.v1.router import api_router
 from app.database.db import Base, engine
 from app.models.user import User
 from app.models.seats import Seat
+from app.middleware.token_middleware import TokenMiddleware
 
 
 def create_app() -> FastAPI:
@@ -11,14 +12,14 @@ def create_app() -> FastAPI:
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[
-            "http://localhost:5173",
-            "http://localhost:3000",
-        ],
+        allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # ✅ Add token rotation middleware (uses services from dependency injection)
+    app.add_middleware(TokenMiddleware)
 
     app.include_router(api_router, prefix="/api/v1")
 

@@ -47,6 +47,7 @@ class TokenResponse(BaseModel):
     access_token: str
     role : str
     token_type: str
+    refresh_token : str
 
 
 class ProfileResponse(BaseModel):
@@ -59,3 +60,6 @@ class UserUpdate(BaseModel):
     name : Optional[str] = None
     role : Optional[str] = None
     is_active : Optional[bool] = None
+
+class RefreshTokenResponse(BaseModel):
+    refresh_token : str

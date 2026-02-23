@@ -64,14 +64,9 @@ class UserServices(UserServiceBase):
                 detail="Invalid Credential !"
             )
         
-        token = self.token_provider.create_token(user.id , user.role)
-
-        return {
-            "message": "User Successfully Login",
-            "access_token": token,
-            "token_type": "bearer",
-            "role": user.role
-        }
+    
+        return user
+    
     
     def delete_user(self , db : Session , user_id ):
         user = self.repo.get_user_by_id(db, user_id)
