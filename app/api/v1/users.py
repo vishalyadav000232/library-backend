@@ -39,37 +39,37 @@ def signup(
     return user_service.create_user(db, user)
 
 
-# =====================================================
-# LOGIN (JSON BODY)
-# =====================================================
-@router.post("/user-login", status_code=status.HTTP_200_OK)
-def login(
-    user_data: LoginUser,
-    db: Session = Depends(get_db),
-    user_service: UserServices = Depends(get_user_service),
-    refresh_service: RefreshTokenService = Depends(get_refresh_token_service),
-    token_provider: TokenProvider = Depends(get_token_provider)
-):
-    user = user_service.login_user(db, user_data)
-    if not user:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+# # =====================================================
+# # LOGIN (JSON BODY)
+# # =====================================================
+# @router.post("/user-login", status_code=status.HTTP_200_OK)
+# def login(
+#     user_data: LoginUser,
+#     db: Session = Depends(get_db),
+#     user_service: UserServices = Depends(get_user_service),
+#     refresh_service: RefreshTokenService = Depends(get_refresh_token_service),
+#     token_provider: TokenProvider = Depends(get_token_provider)
+# ):
+#     user = user_service.login_user(db, user_data)
+#     if not user:
+#         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    access_token = token_provider.create_access_token(user.id, user.role)
-    refresh_token = refresh_service.create_and_store(db, user)
+#     access_token = token_provider.create_access_token(user.id, user.role)
+#     refresh_token = refresh_service.create_and_store(db, user)
 
-    content = {"access_token": access_token, "token_type": "bearer"}
-    response = JSONResponse(content=content)
+#     content = {"access_token": access_token, "token_type": "bearer"}
+#     response = JSONResponse(content=content)
 
-    # ✅ Swagger UI testing only: httponly=False
-    response.set_cookie(
-        key="refresh_token",
-        value=refresh_token,
-        httponly=True,
-            secure=True,
-            samesite="none",
-        max_age=60*60*24*7
-    )
-    return response
+   
+#     response.set_cookie(
+#         key="refresh_token",
+#         value=refresh_token,
+#         httponly=True,
+#             secure=True,
+#             samesite="none",
+#         max_age=60*60*24*7
+#     )
+#     return response
 
 
 # =====================================================
@@ -93,15 +93,20 @@ def login_oauth(
 
     content = {"access_token": access_token, "token_type": "bearer", "role": user.role}
     response = JSONResponse(content=content)
-
+    
+    
     response.set_cookie(
-    key="refresh_token",
-    value=refresh_token,
-    httponly=True,
-    secure=False,        # <-- change to False for local dev
-    samesite="lax",      # <-- Lax works for cross-origin in local dev
-    max_age=60*60*24*7
-)
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=False,
+        samesite="lax",
+        max_age=60*60*24*7  
+    )
+    
+    
+
+    
     return response
 
 

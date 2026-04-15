@@ -15,7 +15,6 @@ class TokenMiddleware(BaseHTTPMiddleware):
             return response
 
         try:
-            # Get dependencies from app.state (populated by FastAPI startup)
             token_provider = getattr(self.app.state, "token_provider", None)
             refresh_service = getattr(self.app.state, "refresh_service", None)
             user_service = getattr(self.app.state, "user_service", None)
@@ -39,15 +38,14 @@ class TokenMiddleware(BaseHTTPMiddleware):
                         key="refresh_token",
                         value=new_refresh_token,
                         httponly=True,
-                        secure=True,
-                        samesite="none",
+                        secure=False,
+                        samesite="lax",
                         max_age=60*60*24*7
                     )
             finally:
                 db.close()
 
         except Exception as e:
-            # Invalid refresh token or rotation failed, continue without rotation
             pass
 
         return response
