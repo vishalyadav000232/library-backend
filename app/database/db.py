@@ -4,14 +4,14 @@ from dotenv import load_dotenv
 from pathlib import Path
 import os
 
-# Load .env
-env_path = Path(__file__).parent.parent / ".env"
+# Load .env from repository root
+env_path = Path(__file__).resolve().parent.parent.parent / ".env"
 load_dotenv(dotenv_path=env_path)
 
 DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL")
 
 if not DATABASE_URL:
-    raise ValueError("DATABASE_URL is not set. Check your .env file.")
+    raise ValueError("SQLALCHEMY_DATABASE_URL is not set. Check your .env file.")
 
 engine = create_engine(
     DATABASE_URL,

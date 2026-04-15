@@ -1,13 +1,15 @@
 from jose import jwt, JWTError
 import os
+from pathlib import Path
 from typing import Optional
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from fastapi import HTTPException, status
 from uuid import UUID
 from app.auth.interface.token_provider import TokenProvider
 
-load_dotenv()
+env_path = Path(__file__).resolve().parent.parent.parent / '.env'
+load_dotenv(dotenv_path=env_path)
 
 
 class JWTTokenProvider(TokenProvider):
@@ -30,8 +32,7 @@ class JWTTokenProvider(TokenProvider):
             "sub": str(user_id),
             "role": role,
             "type": "access",
-            "exp": datetime.now(timezone.utc)
-                  + timedelta(seconds=self.ACCESS_EXPIRE_HOURS),
+            "exp": datetime.utcnow() + timedelta(hours=self.ACCESS_EXPIRE_HOURS),
         }
 
         return jwt.encode(payload, self.SECRET_KEY, algorithm=self.ALGORITHM)
@@ -46,8 +47,7 @@ class JWTTokenProvider(TokenProvider):
             "sub": str(user_id),
             "role": role or "user",
             "type": "refresh",
-            "exp": datetime.now(timezone.utc)
-                  + timedelta(days=self.REFRESH_EXPIRE_DAYS),
+            "exp": datetime.utcnow() + timedelta(days=self.REFRESH_EXPIRE_DAYS),
         }
 
         return jwt.encode(payload, self.SECRET_KEY, algorithm=self.ALGORITHM)
