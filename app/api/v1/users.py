@@ -99,14 +99,13 @@ def login_oauth(
         key="refresh_token",
         value=refresh_token,
         httponly=True,
-        secure=False,
-        samesite="lax",
-        max_age=60*60*24*7  
-    )
+        secure=False,        
+        samesite="lax",      
+        path="/"             
+)
     
     
 
-    
     return response
 
 
@@ -121,7 +120,7 @@ def get_profile(current_user: User = Depends(get_current_user)):
 # =====================================================
 # ADMIN GET USERS
 # =====================================================
-@router.get("/")
+@router.get("")
 def get_users(db: Session = Depends(get_db), admin=Depends(admin_required)):
     return UserRepository().get_all_users(db)
 
@@ -151,6 +150,7 @@ def refresh_token(
     user_service: UserServices = Depends(get_user_service)
 ):
     refresh_token_cookie = request.cookies.get("refresh_token")
+    
 
     if not refresh_token_cookie:
         raise HTTPException(status_code=401, detail="Refresh token missing")
@@ -175,10 +175,10 @@ def refresh_token(
         key="refresh_token",
         value=new_refresh_token,
         httponly=True,
-        secure=False,
-        samesite="lax",
+        secure=True,
+        samesite="none",
+        path="/",
         max_age=60*60*24*7,
-        path="/"
     )
 
     return response
@@ -197,5 +197,10 @@ def logout(
         refresh_service.logout(db, refresh_token)
 
     response = JSONResponse(content={"message": "Logged out successfully"})
-    response.delete_cookie("refresh_token")
+    response.delete_cookie(
+        "refresh_token",
+        path="/",
+        secure=True,
+        samesite="none"
+    )
     return response

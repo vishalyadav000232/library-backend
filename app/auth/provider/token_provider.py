@@ -20,7 +20,7 @@ class JWTTokenProvider(TokenProvider):
             raise RuntimeError("SECRET_KEY not set")
 
         self.ALGORITHM = "HS256"
-        self.ACCESS_EXPIRE_HOURS = 15
+        self.ACCESS_EXPIRE_HOURS = 30
         self.REFRESH_EXPIRE_DAYS = 7
 
 
@@ -32,7 +32,7 @@ class JWTTokenProvider(TokenProvider):
             "sub": str(user_id),
             "role": role,
             "type": "access",
-            "exp": datetime.utcnow() + timedelta(hours=self.ACCESS_EXPIRE_HOURS),
+            "exp": datetime.utcnow() + timedelta(seconds=self.ACCESS_EXPIRE_HOURS),
         }
 
         return jwt.encode(payload, self.SECRET_KEY, algorithm=self.ALGORITHM)
@@ -83,7 +83,7 @@ class JWTTokenProvider(TokenProvider):
                 self.SECRET_KEY,
                 algorithms=[self.ALGORITHM]
             )
-            print("from veryfy : ",payload)
+            
 
             if payload.get("type") != "refresh":
                 raise HTTPException(

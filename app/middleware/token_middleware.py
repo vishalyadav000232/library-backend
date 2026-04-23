@@ -38,8 +38,9 @@ class TokenMiddleware(BaseHTTPMiddleware):
                         key="refresh_token",
                         value=new_refresh_token,
                         httponly=True,
-                        secure=False,
-                        samesite="lax",
+                        secure=True,
+                        samesite="none",
+                        path="/",
                         max_age=60*60*24*7
                     )
             finally:

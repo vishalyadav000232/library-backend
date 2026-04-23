@@ -55,10 +55,10 @@ class RefreshTokenService:
                 detail="Invalid refresh token payload"
             )
 
-        # 2️⃣ Validate token exists in DB
+        
         token_hash_value = hash_token(refresh_token)
         token_record = self.repo.find_valid(db, token_hash_value)
-        print(token_record)
+       
 
         # 3️⃣ Reuse detection (VERY IMPORTANT SECURITY)
         if not token_record:
@@ -94,7 +94,7 @@ class RefreshTokenService:
 
         token_hash_value = hash_token(refresh_token)
         token = self.repo.find_valid(db, token_hash_value)
-        print(token)
+       
 
         if token:
             self.repo.revoke(db, token)
