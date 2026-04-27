@@ -35,7 +35,7 @@ def admin_dashboard(
     ).count()
 
     verified_payments = db.query(Payment).filter(
-        Payment.status == "verified"
+        Payment.status == "SUCCESS"
     ).count()
 
     return {

@@ -67,7 +67,7 @@ class BookingService(BookingServiceBase):
             shift_id=booking_data.shift_id,
             start_date=start_date,
             end_date=end_date,
-            status="ACTIVE"
+            status="PENDING"
         )
 
         try:

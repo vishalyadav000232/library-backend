@@ -27,9 +27,9 @@ from app.auth.provider.token_provider import TokenProvider
 router = APIRouter(prefix="/users", tags=["Users"])
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl="/api/v1/users/login")
 
-# =====================================================
-# SIGNUP
-# =====================================================
+
+
+
 @router.post("/signup", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
 def signup(
     user: UserCreate,
