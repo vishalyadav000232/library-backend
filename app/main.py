@@ -41,7 +41,12 @@ def create_app() -> FastAPI:
 
     app.add_middleware(TokenMiddleware)
 
-    app.include_router(api_router, prefix="/api/v1")
+#  add all router in the app 
+
+    app.include_router(api_router)
+    
+#  On startup app 
+
 
     @app.on_event("startup")
     def startup():

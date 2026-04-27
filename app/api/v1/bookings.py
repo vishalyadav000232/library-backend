@@ -34,8 +34,8 @@ def get_all_booking_data(
 
 # ✅ 1) Create booking
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=BookingResponse)
-def book_seat(booking: BookingCreate, db: Session = Depends(get_db), booking_service: BookingService = Depends(get_booking_service)):
-    return booking_service.create_booking(db, booking)
+async def book_seat(booking: BookingCreate, db: Session = Depends(get_db), booking_service: BookingService = Depends(get_booking_service)):
+    return  await booking_service.create_booking(db, booking)
 
 
 # ✅ 2) Get all bookings (admin usage mostly)

@@ -7,7 +7,7 @@ from app.services.report_service import ReportService
 from app.api.dependency import get_report_service
 from app.schemas.report import ReportResponse
 
-router = APIRouter(prefix="/reports", tags=["Reports"])
+router = APIRouter()
 
 
 @router.get(

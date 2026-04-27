@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from sqlalchemy.orm import Session
-from sqlalchemy import func ,exists
+from sqlalchemy import func ,exists 
 from uuid import UUID
 from app.models.seats import Seat
 from app.models.booking import Booking
@@ -36,6 +36,9 @@ class SeatRepositoryBase(ABC):
     @abstractmethod
     
     def update_seat(self, db: Session, seat: Seat, update_data: dict):
+        pass
+    
+    def get_available_seat_count(self , db : Session):
         pass
     
 
@@ -98,4 +101,7 @@ class SeatRepository(SeatRepositoryBase):
         db.commit()
         db.refresh(seat)
         return seat
+    
+    def get_available_seat_count(db: Session):
+        return db.query(Seat).filter(Seat.status == False).count()
 

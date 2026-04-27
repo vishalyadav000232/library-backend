@@ -24,7 +24,7 @@ class Payment(Base):
     amount = Column(Integer, nullable=False)  # in paisa
     currency = Column(String, default="INR")
 
-    status = Column(Enum(PaymentStatus), default=PaymentStatus.CREATED)
+    status = Column(Enum(PaymentStatus), default=PaymentStatus.CREATED , index=True)
 
     provider = Column(String, default="razorpay")
     provider_order_id = Column(String, nullable=False)

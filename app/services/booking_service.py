@@ -7,6 +7,8 @@ from app.repository.booking_repository import BookingRepository , BookingReposit
 import uuid
 from abc import ABC , abstractmethod
 from app.schemas.booking import BookingReport
+from app.repository.seat_repository import SeatRepository
+from app.websockets.manger import manager
 class BookingServiceBase(ABC):
     
     @abstractmethod
@@ -38,8 +40,9 @@ class BookingService(BookingServiceBase):
 
     def __init__(self, repo: BookingRepositoryBase):
         self.repo = repo
+        self.seat_repo = SeatRepository()
 
-    def create_booking(self, db: Session, booking_data):
+    async def create_booking(self, db: Session, booking_data):
         start_date = normalize_date(booking_data.start_date)
         end_date = normalize_date(booking_data.end_date)
 
@@ -49,7 +52,7 @@ class BookingService(BookingServiceBase):
                 detail="end_date cannot be less than start_date"
             )
 
-        if not self.repo.is_seat_available(
+        if not   self.repo.is_seat_available(
             db,
             booking_data.seat_id,
             booking_data.shift_id,
@@ -71,15 +74,30 @@ class BookingService(BookingServiceBase):
         )
 
         try:
-            return self.repo.create(db, booking)
+           
+            saved_booking =   self.repo.create(db, booking)
+
+          
+            # total_available =  self.seat_repo.get_available_seat_count(db)
+
+           
+            await manager.broadcast({
+                "type": "SEAT_UPDATE",
+                "seat_id": booking_data.seat_id,
+                "status": "BOOKED"
+})
+
+            return saved_booking
 
         except IntegrityError:
             db.rollback()
             raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Seat already booked (race condition)"
-            )
-
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Seat already booked (race condition)"
+        )
+            
+            
+            
     def get_all_bookings(self, db: Session):
         return self.repo.get_all_bookings(db)
 

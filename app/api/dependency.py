@@ -54,7 +54,7 @@ from app.repository.refresh_token_repository import RefreshTokenRepository
 # OAUTH2 SCHEME
 # =========================================================
 oauth2_bearer = OAuth2PasswordBearer(
-    tokenUrl="/api/v1/users/login"
+    tokenUrl="/api/v1/auth/login"
 )
 
 
@@ -136,3 +136,16 @@ def get_refresh_token_service(
         repo=repo,
         token_provider=token_provider
     )
+    
+    
+
+# =========================================================
+# USER SERVICE
+# =========================================================
+
+from app.repository.user_repository import UserRepository
+from app.services.user_service import UserService
+def get_user_service_admin():
+    repo = UserRepository()
+    return  UserService(repo=repo)
+    

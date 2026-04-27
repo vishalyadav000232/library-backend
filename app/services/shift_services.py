@@ -2,20 +2,22 @@ from abc import ABC, abstractmethod
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from app.models.shift import Shift
+from app.schemas.shift import ShiftCreate
 import uuid
 from app.repository.shift_repository import ShiftRepositoryBase
 
 
 
-class ShiftServiceBase(ABC):
+
+class ShiftServiceInterface(ABC):
 
     @abstractmethod
-    def create_shift(self,db: Session,name: str,start_time,end_time):
+    def create_shift(self, db: Session, shift: ShiftCreate):
         pass
 
 
 
-class ShiftService(ShiftServiceBase):
+class ShiftService(ShiftServiceInterface):
 
     def __init__(self, repo: ShiftRepositoryBase):
         self.repo = repo
