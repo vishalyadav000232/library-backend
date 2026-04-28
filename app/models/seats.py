@@ -9,5 +9,6 @@ class Seat(Base):
     seat_number = Column(String, unique=True, nullable=False, index=True)
     floor = Column(String, nullable=False, default="Ground Floor")   # Ground 
     seat_type = Column(String, nullable=False, default="Standard")   # Standard / 
-    price = Column(Integer, nullable=False, default=50)              # price per 
+    price = Column(Integer, nullable=False, default=50) 
+    is_locked = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)

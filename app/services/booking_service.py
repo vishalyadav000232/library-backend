@@ -9,6 +9,21 @@ from abc import ABC , abstractmethod
 from app.schemas.booking import BookingReport
 from app.repository.seat_repository import SeatRepository
 from app.websockets.manger import manager
+import os
+from app.models.payment import Payment , PaymentStatus
+
+from app.payments.client import client
+
+
+import hmac
+import hashlib
+
+
+from app.redis.bookings_lock import lock_seat , unlock_seat
+
+
+
+
 class BookingServiceBase(ABC):
     
     @abstractmethod
@@ -45,6 +60,16 @@ class BookingService(BookingServiceBase):
     async def create_booking(self, db: Session, booking_data):
         start_date = normalize_date(booking_data.start_date)
         end_date = normalize_date(booking_data.end_date)
+        
+        
+        locked = lock_seat(
+            booking_data.seat_id,
+            booking_data.shift_id,
+            start_date
+        ) 
+        
+        if not locked:
+            raise HTTPException(409, "Seat is temporarily locked")
 
         if end_date < start_date:
             raise HTTPException(
@@ -80,12 +105,11 @@ class BookingService(BookingServiceBase):
           
             # total_available =  self.seat_repo.get_available_seat_count(db)
 
-           
             await manager.broadcast({
                 "type": "SEAT_UPDATE",
                 "seat_id": booking_data.seat_id,
-                "status": "BOOKED"
-})
+                 "status": "LOCKED"
+            })
 
             return saved_booking
 
@@ -174,6 +198,118 @@ class BookingService(BookingServiceBase):
             )
 
         return result
-            
+    
+    
+    async def confirm_booking_after_payment(self, db: Session, booking_id):
+
+        booking = self.repo.get_booking_by_id(db, booking_id)
+
+        if not booking:
+            raise HTTPException(404, "Booking not found")
+
+        booking.status = "CONFIRMED"
+
+        db.commit()
+
+      
+        unlock_seat(
+            booking.seat_id,
+            booking.shift_id,
+            booking.start_date
+        )
+
+       
+        await manager.broadcast({
+            "type": "SEAT_UPDATE",
+            "seat_id": booking.seat_id,
+            "status": "BOOKED"
+        })
+
+        return booking
+    
+    
+    async def create_booking_with_payment(self, db: Session, booking_data, user_id):
+
+       
+        booking_data.user_id = user_id
+        booking = await self.create_booking(db, booking_data)
+
+       
+        seat = self.seat_repo.get_by_id(db, booking.seat_id)
+        amount = seat.price
+
+        
+
+       
+        order = client.order.create({
+            "amount": amount * 100,
+            "currency": "INR"
+        })
+
+        payment = Payment(
+            user_id=user_id,
+            booking_id=booking.id,
+            amount=amount,
+            provider_order_id=order["id"],
+            status=PaymentStatus.CREATED
+        )
+
+        db.add(payment)
+        db.commit()
+
+        return {
+            "booking_id": str(booking.id),
+            "order_id": order["id"],
+            "amount": amount,
+            "key": os.getenv("RAZORPAY_KEY_ID")
+        }
+        
+    
+    async def verify_payment(self, db: Session, data: dict):
+
+        secret = os.getenv("RAZORPAY_KEY_SECRET")
+
+        generated_signature = hmac.new(
+            bytes(secret, "utf-8"),
+            bytes(data["order_id"] + "|" + data["payment_id"], "utf-8"),
+            hashlib.sha256
+        ).hexdigest()
+
+        if generated_signature != data["signature"]:
+            raise HTTPException(400, "Invalid payment")
+
+        payment = db.query(Payment).filter(
+            Payment.provider_order_id == data["order_id"]
+        ).first()
+
+        if not payment:
+            raise HTTPException(404, "Payment not found")
+
+        if payment.status == PaymentStatus.SUCCESS:
+            return {"message": "Already processed"}
+
+        payment.status = PaymentStatus.SUCCESS
+        payment.provider_payment_id = data["payment_id"]
+
+        booking = db.query(Booking).get(payment.booking_id)
+        booking.status = "CONFIRMED"
+
+        unlock_seat(
+            booking.seat_id,
+            booking.shift_id,
+            booking.start_date
+        )
+
+        db.commit()
+
+        await manager.broadcast({
+            "type": "SEAT_UPDATE",
+            "seat_id": booking.seat_id,
+            "status": "BOOKED"
+        })
+
+        return {"message": "Payment success"}
+                    
+                            
 
 

@@ -1,6 +1,6 @@
 # app/api/v1/bookings/public.py
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status , Request
 from sqlalchemy.orm import Session
 from uuid import UUID
 
@@ -14,9 +14,13 @@ router = APIRouter(
  
 )
 
-# =====================================================
-# CREATE BOOKING (USER)
-# =====================================================
+
+
+
+
+
+
+
 @router.post(
     "/",
     status_code=status.HTTP_201_CREATED,
@@ -31,9 +35,14 @@ async def book_seat(
     return await booking_service.create_booking(db, booking, current_user.id)
 
 
-# =====================================================
-# MY BOOKINGS (USER ONLY)
-# =====================================================
+
+
+
+
+
+
+
+
 @router.get(
     "/me",
     status_code=status.HTTP_200_OK,
@@ -47,9 +56,9 @@ def my_bookings(
     return booking_service.my_bookings(db, current_user.id)
 
 
-# =====================================================
-# GET SINGLE BOOKING (USER - OWN ONLY)
-# =====================================================
+
+
+
 @router.get(
     "/{booking_id}",
     status_code=status.HTTP_200_OK,
@@ -64,9 +73,11 @@ def get_booking_by_id(
     return booking_service.get_booking_for_user(db, booking_id, current_user.id)
 
 
-# =====================================================
-# CANCEL BOOKING (USER - OWN ONLY)
-# =====================================================
+
+
+
+
+
 @router.patch(
     "/{booking_id}/cancel",
     status_code=status.HTTP_200_OK
@@ -78,3 +89,58 @@ def cancel_booking(
     booking_service: BookingService = Depends(get_booking_service)
 ):
     return booking_service.cancel_booking_user(db, booking_id, current_user.id)
+
+
+
+
+
+
+@router.post("/webhook/razorpay")
+async def razorpay_webhook(
+    request: Request,
+    db: Session = Depends(get_db),
+    booking_service: BookingService = Depends(get_booking_service)
+):
+    body = await request.body()
+    signature = request.headers.get("X-Razorpay-Signature")
+
+    return booking_service.handle_webhook(db, body, signature)
+
+
+
+
+
+
+
+
+
+# create booking with payment
+@router.post("/create-with-payment")
+async def create_booking_with_payment(
+    booking: BookingCreate,
+    db: Session = Depends(get_db),
+    booking_service: BookingService = Depends(get_booking_service),
+    current_user: User = Depends(get_current_user)
+):
+    return await booking_service.create_booking_with_payment(
+        db, booking, current_user.id
+    )
+
+
+
+
+
+
+
+
+
+
+
+# verify payment
+@router.post("/verify-payment")
+async def verify_payment(
+    data: dict,
+    db: Session = Depends(get_db),
+    booking_service: BookingService = Depends(get_booking_service)
+):
+    return await booking_service.verify_payment(db, data)

@@ -16,4 +16,4 @@ class Booking(Base):
     start_date = Column(Date, nullable=False , index=True)
     end_date = Column(Date, nullable=True)
     is_active = Column(Boolean, default=True)
-    status = Column(String, default="ACTIVE" , index=True)
+    status = Column(String, default="PENDING" , index=True)
