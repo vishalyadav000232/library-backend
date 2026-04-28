@@ -1,48 +1,17 @@
-# app/api/v1/seats.py
+# app/api/v1/seats/public.py
 
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from typing import List
 from uuid import UUID
 
 from app.database.db import get_db
-from app.schemas.seats import SeatCreate, SeatResponse, SeatUpdate
-from app.api.admin.admin_gaurd import admin_required
+from app.schemas.seats import SeatResponse
 from app.api.dependency import get_seat_service
 from app.services.seat_services import SeatService
 
-router = APIRouter(
-    prefix="/seats",
-    tags=["Seats"]
-)
+router = APIRouter()
 
-# =====================================================
-# CREATE SEAT
-# =====================================================
-
-@router.post(
-    "/",
-    response_model=SeatResponse,
-    status_code=status.HTTP_201_CREATED
-)
-def create_seat(
-    seat: SeatCreate,
-    db: Session = Depends(get_db),
-    seat_service: SeatService = Depends(get_seat_service),
-    admin=Depends(admin_required)
-):
-    try:
-        return seat_service.create_seat(db, seat)
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
-
-
-# =====================================================
-# GET ALL SEATS (WITH PAGINATION)
-# =====================================================
 
 @router.get(
     "/",
@@ -67,66 +36,4 @@ def get_seat_by_id(
     db: Session = Depends(get_db),
     seat_service: SeatService = Depends(get_seat_service)
 ):
-    seat = seat_service.get_by_id(db, seat_id)
-
-    if not seat:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Seat not found"
-        )
-
-    return seat
-
-
-
-@router.patch(
-    "/{seat_id}/update",
-    response_model=SeatResponse,
-    status_code=status.HTTP_200_OK
-)
-def update_seat(
-    seat_id: UUID,
-    update_data: SeatUpdate,
-    db: Session = Depends(get_db),
-    seat_service: SeatService = Depends(get_seat_service),
-    admin=Depends(admin_required)
-):
-    updated_seat = seat_service.update_seat(db, seat_id, update_data)
-
-    return updated_seat
-
-
-
-@router.delete(
-    "/{seat_id}/delete",
-    status_code=status.HTTP_200_OK
-)
-def delete_seat(
-    seat_id: UUID,
-    db: Session = Depends(get_db),
-    seat_service: SeatService = Depends(get_seat_service),
-    admin=Depends(admin_required)
-):
-    
-    deleted = seat_service.delete_seat(db, seat_id)
-
-    
-
-    return {
-  "message": "Seat deleted successfully",
-  "deleted" : deleted
-}
-
-
-
-
-@router.get(
-    "/stats/summary",
-    status_code=status.HTTP_200_OK
-)
-def seat_stats(
-    db: Session = Depends(get_db),
-    seat_service: SeatService = Depends(get_seat_service),
-    admin=Depends(admin_required)
-):
-    return seat_service.get_seat_stats(db)
+    return seat_service.get_by_id(db, seat_id)

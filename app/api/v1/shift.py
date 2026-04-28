@@ -1,43 +1,22 @@
-from fastapi import APIRouter, Depends, HTTPException, status 
+# app/api/v1/shifts/public.py
+
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
+
 from app.database.db import get_db
-from datetime import time
-from app.models.shift import Shift
+from app.api.dependency import get_shift_service
 from app.services.shift_services import ShiftService
 
-
-
-router = APIRouter()
-
-
-
-from app.api.dependency import get_shift_service
-
-
-@router.post("/shifts", status_code=status.HTTP_201_CREATED ,)
-def create_shift_endpoint(name: str, start_time: str, end_time: str, db: Session = Depends(get_db) , shift_service: ShiftService = Depends(get_shift_service)):
+router = APIRouter(
    
-    try:
-        start = time.fromisoformat(start_time)
-        end = time.fromisoformat(end_time)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid time format. Use HH:MM.")
+)
 
-    try:
-        shift = shift_service.create_shift(db, name, start, end)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-    return {"message": "Shift created successfully!", "shift_id": str(shift.id)}
-
-
-@router.get("/shift", status_code=status.HTTP_200_OK)
-def get_all_shift(db: Session = Depends(get_db)):
-    try:
-        shifts = db.query(Shift).all()   # ✅ Shift model use karo
-        return shifts
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Something went wrong: {str(e)}"
-        )
+@router.get(
+    "/",
+    status_code=status.HTTP_200_OK
+)
+def get_all_shifts(
+    db: Session = Depends(get_db),
+    shift_service: ShiftService = Depends(get_shift_service)
+):
+    return shift_service.get_all_shift(db)
