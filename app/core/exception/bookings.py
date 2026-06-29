@@ -57,3 +57,11 @@ class BookingLimitExceededException(AppException):
             400,
             "BOOKING_LIMIT_EXCEEDED",
         )
+
+class InvalidBookingStatusException(AppException):
+    def __init__(self):
+        super().__init__(
+                         "Invalid Bokkings status",
+                         400,
+                         "INVALID_BOKKING_STATUS"
+                         )

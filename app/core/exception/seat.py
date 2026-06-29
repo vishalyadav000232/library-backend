@@ -34,3 +34,11 @@ class InvalidSeatStatusException(AppException):
             400,
             "INVALID_SEAT_STATUS",
         )
+
+class SeatTemporarilyLockedException(AppException):
+    def __init__(self):
+        super().__init__(
+            "Seat are temporary locked",
+            400,
+            "SEAT_TEMP_LOCKED"
+        )

@@ -38,3 +38,11 @@ class RefundFailedException(AppException):
             400,
             "REFUND_FAILED",
         )
+    
+class PaymentProviderException(AppException):
+    def __init__(self ):
+        super().__init__(
+            "Payment Provider not ready",
+            400,
+            "PAYMENT_PROVIDER_ERROR"
+        )
