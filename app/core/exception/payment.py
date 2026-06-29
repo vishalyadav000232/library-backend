@@ -46,3 +46,10 @@ class PaymentProviderException(AppException):
             400,
             "PAYMENT_PROVIDER_ERROR"
         )
+class InvalidPaymentException(AppException):
+    def __init__(self ):
+        super().__init__(
+            "Payment Provider not ready",
+            400,
+            "PAYMENT_PROVIDER_ERROR"
+        )

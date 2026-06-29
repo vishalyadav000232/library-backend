@@ -1,7 +1,7 @@
 
 
 
-from backend.app.core.exception.base import AppException
+from app.core.exception.base import AppException
 
 
 

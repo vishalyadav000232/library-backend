@@ -16,7 +16,6 @@ from app.models.user import User
 from app.repository.user_repository import UserRepositoryBase
 from app.schemas.user import LoginUser, UserCreate
 
-
 logger = logging.getLogger(__name__)
 
 
