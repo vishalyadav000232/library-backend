@@ -23,7 +23,7 @@ def create_app() -> FastAPI:
 
     app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:5173" , "https://washed-grape-unsealed.ngrok-free.dev"],  
+    allow_origins=["http://127.0.0.1:5153"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

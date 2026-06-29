@@ -1,6 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
+from uuid import UUID
 
 # ===============================
 # DB
@@ -76,7 +77,7 @@ def get_current_user(
             detail="Invalid token"
         )
 
-    user = user_repo.get_user_by_id(db, user_id)
+    user = user_repo.get_user_by_id(db, UUID(user_id))
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

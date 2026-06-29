@@ -18,9 +18,6 @@ router = APIRouter(
 
 
 
-
-
-
 @router.post(
     "/",
     status_code=status.HTTP_201_CREATED,
@@ -33,10 +30,6 @@ async def book_seat(
     current_user: User = Depends(get_current_user)
 ):
     return await booking_service.create_booking(db, booking, current_user.id)
-
-
-
-
 
 
 
