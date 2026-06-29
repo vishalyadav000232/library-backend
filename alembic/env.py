@@ -8,6 +8,25 @@ from app.database.db import Base
 
 # Import all models so Alembic can detect all tables
 from app.models import *
+
+
+
+
+
+
+
+
+
+
+
+
+from app.models.user import User
+from app.models.booking import Booking
+from app.models.payment import Payment
+from app.models.report import Report
+from app.models.seats import Seat
+from app.models.shift import Shift
+
 from app.models.refresh_token import RefreshToken
 
 
