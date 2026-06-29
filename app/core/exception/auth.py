@@ -95,3 +95,20 @@ class ForbiddenException(AppException):
             status_code=403,
             error_code="FORBIDDEN",
         )
+
+class InvalidRefreshTokenPayloadException(AppException):
+    def __init__(self):
+        super().__init__(
+            message="Invalid refresh token payload.",
+            status_code=401,
+            error_code="INVALID_REFRESH_TOKEN_PAYLOAD",
+        )
+
+
+class RefreshTokenReuseDetectedException(AppException):
+    def __init__(self):
+        super().__init__(
+            message="Refresh token reuse detected. Please login again.",
+            status_code=401,
+            error_code="REFRESH_TOKEN_REUSE_DETECTED",
+        )
