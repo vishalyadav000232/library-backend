@@ -147,3 +147,5 @@ class BookingRepository(BookingRepositoryBase):
             .outerjoin(Payment, Payment.booking_id == Booking.id)
             .all()
         )
+        
+    

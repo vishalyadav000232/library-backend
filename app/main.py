@@ -12,7 +12,11 @@ from app.repository.refresh_token_repository import RefreshTokenRepository
 from app.repository.user_repository import UserRepository
 from app.services.auth_services import UserServices
 from app.services.refres_token_service import RefreshTokenService
+from app.core.logging import   configure_logging
 
+
+
+configure_logging()
 
 logger = logging.getLogger(__name__)
 
