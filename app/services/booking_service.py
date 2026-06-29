@@ -270,8 +270,8 @@ class BookingService(BookingServiceBase):
         secret = os.getenv("RAZORPAY_KEY_SECRET")
 
         generated_signature = hmac.new(
-            bytes(secret, "utf-8"),
-            bytes(data["order_id"] + "|" + data["payment_id"], "utf-8"),
+            secret.encode("utf-8"),
+            (data["order_id"] + "|" + data["payment_id"]).encode("utf-8"),
             hashlib.sha256
         ).hexdigest()
 
