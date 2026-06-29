@@ -5,6 +5,8 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from app.database.db import Base
+
+# Import all models so Alembic can detect all tables
 from app.models import *
 from app.models.refresh_token import RefreshToken
 
@@ -18,13 +20,16 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 
-database_url = os.getenv("DATABASE_URL")
+database_url = (
+    os.getenv("SQLALCHEMY_DATABASE_URL")
+    or os.getenv("DATABASE_URL")
+)
 
 if database_url:
     config.set_main_option("sqlalchemy.url", database_url)
+    print("Using database URL from environment variable.")
 else:
-    # Local development ke liye alembic.ini ka sqlalchemy.url use hoga
-    print("DATABASE_URL not found. Using sqlalchemy.url from alembic.ini")
+    print("Database URL not found. Using sqlalchemy.url from alembic.ini")
 
 
 def run_migrations_offline() -> None:
@@ -35,6 +40,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        compare_type=True,
     )
 
     with context.begin_transaction():
@@ -54,6 +60,7 @@ def run_migrations_online() -> None:
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
+            compare_type=True,
         )
 
         with context.begin_transaction():
