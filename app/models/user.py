@@ -1,6 +1,6 @@
 import uuid
 from sqlalchemy import Column, String, Boolean, DateTime
-from datetime import datetime
+from datetime import datetime , timezone
 from app.database.db import Base
 from sqlalchemy.dialects.postgresql import UUID
 from passlib.context import CryptContext
@@ -19,7 +19,7 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     role = Column(String(50), default="STUDENT")
     is_active = Column(Boolean, default=True)
-    create_at = Column(DateTime, default=datetime.utcnow)
+    create_at = Column(DateTime, default= lambda : datetime.noe(timezone.utc))
 
     
     def set_password(self, password: str):
@@ -30,5 +30,3 @@ class User(Base):
     def verify_password(self, password: str) -> bool:
         truncate = truncate_password(password)
         return pwd_context.verify(truncate, self.hashed_password)
-    def hello(self):
-        return "hello world"
