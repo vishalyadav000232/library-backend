@@ -42,3 +42,29 @@ class SeatTemporarilyLockedException(AppException):
             400,
             "SEAT_TEMP_LOCKED"
         )
+    
+class SeatAlreadyExistsException(AppException):
+    def __init__(self):
+        super().__init__(
+            message="Seat already exists.",
+            status_code=409,
+            error_code="SEAT_ALREADY_EXISTS",
+        )
+
+
+class SeatHasActiveBookingsException(AppException):
+    def __init__(self):
+        super().__init__(
+            message="Seat has active bookings and cannot be deleted.",
+            status_code=400,
+            error_code="SEAT_HAS_ACTIVE_BOOKINGS",
+        )
+
+
+class SeatTemporarilyLockedException(AppException):
+    def __init__(self):
+        super().__init__(
+            message="Seat is temporarily locked.",
+            status_code=409,
+            error_code="SEAT_TEMPORARILY_LOCKED",
+        )
