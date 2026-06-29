@@ -1,26 +1,39 @@
+import json
+import logging
 from abc import ABC, abstractmethod
-from sqlalchemy.orm import Session
 from typing import Optional
 from uuid import UUID, uuid4
-from fastapi import HTTPException
-import json
 
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.orm import Session
+
+from app.core.exception.database import DatabaseException
+from app.core.exception.user import (
+    EmailAlreadyExistsException,
+    UserCacheException,
+    UserNotFoundException,
+)
+from app.dto.user_dto import PaginatedUsersDTO, UserDTO
 from app.models.user import User
-from app.schemas.user import UserCreate, UserUpdate
-from app.dto.user_dto import UserDTO, PaginatedUsersDTO
-
-from app.redis.client import redis_client, CACHE_TTL
+from app.redis.client import CACHE_TTL, redis_client
 from app.repository.user_repository import UserRepositoryBase
+from app.schemas.user import UserCreate, UserUpdate
 
 
-# =====================================================
-# INTERFACE
-# =====================================================
+logger = logging.getLogger(__name__)
+
+
 class UserServiceInterface(ABC):
 
     @abstractmethod
-    def get_users(self, db: Session, limit: int, offset: int,
-                  search: Optional[str], is_active: Optional[bool]):
+    def get_users(
+        self,
+        db: Session,
+        limit: int,
+        offset: int,
+        search: Optional[str],
+        is_active: Optional[bool],
+    ):
         pass
 
     @abstractmethod
@@ -44,145 +57,340 @@ class UserServiceInterface(ABC):
         pass
 
 
-# =====================================================
-# SERVICE IMPLEMENTATION
-# =====================================================
 class UserService(UserServiceInterface):
 
     def __init__(self, repo: UserRepositoryBase):
         self.repo = repo
 
-    # -------------------------
-    # GET USERS (PAGINATED)
-    # -------------------------
-    def get_users(self, db, limit, offset, search=None, is_active=None):
-
+    def get_users(
+        self,
+        db: Session,
+        limit: int,
+        offset: int,
+        search: Optional[str] = None,
+        is_active: Optional[bool] = None,
+    ):
         cache_key = f"users:{limit}:{offset}:{search}:{is_active}"
 
-        cached = redis_client.get(cache_key)
-        if cached:
-            return json.loads(cached)
+        try:
+            logger.info(
+                "Fetching users. limit=%s offset=%s search=%s is_active=%s",
+                limit,
+                offset,
+                search,
+                is_active,
+            )
 
-        users, total = self.repo.get_users(db, limit, offset, search, is_active)
+            cached = self._cache_get(cache_key)
 
-        items = [UserDTO.model_validate(u).model_dump() for u in users]
+            if cached:
+                logger.info("Users fetched from cache. cache_key=%s", cache_key)
+                return cached
 
-        page = (offset // limit) + 1
-        pages = (total + limit - 1) // limit
+            users, total = self.repo.get_users(
+                db,
+                limit,
+                offset,
+                search,
+                is_active,
+            )
 
-        response = PaginatedUsersDTO(
-            items=items,
-            total=total,
-            page=page,
-            size=limit,
-            pages=pages
-        ).model_dump()
+            items = [
+                UserDTO.model_validate(user).model_dump()
+                for user in users
+            ]
 
-        redis_client.setex(
-            cache_key,
-            CACHE_TTL,
-            json.dumps(response, default=str)
-        )
+            page = (offset // limit) + 1
+            pages = (total + limit - 1) // limit
 
-        return response
+            response = PaginatedUsersDTO(
+                items=items,
+                total=total,
+                page=page,
+                size=limit,
+                pages=pages,
+            ).model_dump()
 
-    # -------------------------
-    # GET USER BY ID
-    # -------------------------
-    def get_user(self, db, user_id):
+            self._cache_set(cache_key, response, CACHE_TTL)
 
+            logger.info(
+                "Users fetched successfully. total=%s page=%s size=%s",
+                total,
+                page,
+                limit,
+            )
+
+            return response
+
+        except UserCacheException:
+            raise
+
+        except SQLAlchemyError:
+            logger.exception("Database error while fetching users.")
+            raise DatabaseException()
+
+    def get_user(self, db: Session, user_id: UUID):
         cache_key = f"user:{user_id}"
 
-        cached = redis_client.get(cache_key)
-        if cached:
+        try:
+            logger.info("Fetching user. user_id=%s", user_id)
+
+            cached = self._cache_get(cache_key)
+
+            if cached:
+                logger.info("User fetched from cache. user_id=%s", user_id)
+                return cached
+
+            user = self.repo.get_user_by_id(db, user_id)
+
+            if not user:
+                logger.warning("User not found. user_id=%s", user_id)
+                raise UserNotFoundException()
+
+            dto = UserDTO.model_validate(user).model_dump()
+
+            self._cache_set(cache_key, dto, CACHE_TTL)
+
+            logger.info("User fetched successfully. user_id=%s", user_id)
+
+            return dto
+
+        except (UserNotFoundException, UserCacheException):
+            raise
+
+        except SQLAlchemyError:
+            logger.exception(
+                "Database error while fetching user. user_id=%s",
+                user_id,
+            )
+            raise DatabaseException()
+
+    def create_user(self, db: Session, user_data: UserCreate):
+        try:
+            logger.info("Creating user. email=%s", user_data.email)
+
+            user = User(
+                id=uuid4(),
+                name=user_data.name,
+                email=user_data.email,
+                is_active=True,
+            )
+
+            created_user = self.repo.create(db, user)
+
+            self._clear_users_cache()
+
+            logger.info(
+                "User created successfully. user_id=%s email=%s",
+                created_user.id,
+                created_user.email,
+            )
+
+            return UserDTO.model_validate(created_user).model_dump()
+
+        except IntegrityError:
+            db.rollback()
+            logger.warning(
+                "User creation failed. Email already exists. email=%s",
+                user_data.email,
+            )
+            raise EmailAlreadyExistsException()
+
+        except UserCacheException:
+            raise
+
+        except SQLAlchemyError:
+            db.rollback()
+            logger.exception(
+                "Database error while creating user. email=%s",
+                user_data.email,
+            )
+            raise DatabaseException()
+
+    def update_user(self, db: Session, user_id: UUID, user_data: UserUpdate):
+        try:
+            logger.info("Updating user. user_id=%s", user_id)
+
+            user = self.repo.get_user_by_id(db, user_id)
+
+            if not user:
+                logger.warning("Update failed. User not found. user_id=%s", user_id)
+                raise UserNotFoundException()
+
+            if user_data.name is not None:
+                user.name = user_data.name
+
+            if user_data.email is not None:
+                user.email = user_data.email
+
+            updated_user = self.repo.update_user(db, user)
+
+            self._clear_user_cache(user_id)
+
+            logger.info("User updated successfully. user_id=%s", user_id)
+
+            return UserDTO.model_validate(updated_user).model_dump()
+
+        except UserNotFoundException:
+            raise
+
+        except IntegrityError:
+            db.rollback()
+            logger.warning(
+                "User update failed. Email already exists. user_id=%s email=%s",
+                user_id,
+                user_data.email,
+            )
+            raise EmailAlreadyExistsException()
+
+        except UserCacheException:
+            raise
+
+        except SQLAlchemyError:
+            db.rollback()
+            logger.exception(
+                "Database error while updating user. user_id=%s",
+                user_id,
+            )
+            raise DatabaseException()
+
+    def delete_user(self, db: Session, user_id: UUID):
+        try:
+            logger.info("Deleting user. user_id=%s", user_id)
+
+            user = self.repo.get_user_by_id(db, user_id)
+
+            if not user:
+                logger.warning("Delete failed. User not found. user_id=%s", user_id)
+                raise UserNotFoundException()
+
+            self.repo.delete_user(db, user)
+
+            self._clear_user_cache(user_id)
+
+            logger.info("User deleted successfully. user_id=%s", user_id)
+
+            return {"message": "User deleted successfully"}
+
+        except UserNotFoundException:
+            raise
+
+        except UserCacheException:
+            raise
+
+        except SQLAlchemyError:
+            db.rollback()
+            logger.exception(
+                "Database error while deleting user. user_id=%s",
+                user_id,
+            )
+            raise DatabaseException()
+
+    def change_status(
+        self,
+        db: Session,
+        user_id: UUID,
+        is_active: bool,
+    ):
+        try:
+            logger.info(
+                "Changing user status. user_id=%s is_active=%s",
+                user_id,
+                is_active,
+            )
+
+            user = self.repo.get_user_by_id(db, user_id)
+
+            if not user:
+                logger.warning(
+                    "Change status failed. User not found. user_id=%s",
+                    user_id,
+                )
+                raise UserNotFoundException()
+
+            user.is_active = is_active
+
+            updated_user = self.repo.update_user(db, user)
+
+            self._clear_user_cache(user_id)
+
+            logger.info(
+                "User status changed successfully. user_id=%s is_active=%s",
+                user_id,
+                is_active,
+            )
+
+            return UserDTO.model_validate(updated_user).model_dump()
+
+        except UserNotFoundException:
+            raise
+
+        except UserCacheException:
+            raise
+
+        except SQLAlchemyError:
+            db.rollback()
+            logger.exception(
+                "Database error while changing user status. user_id=%s",
+                user_id,
+            )
+            raise DatabaseException()
+
+    def _cache_get(self, key: str):
+        if not redis_client:
+            return None
+
+        try:
+            cached = redis_client.get(key)
+
+            if not cached:
+                return None
+
             return json.loads(cached)
 
-        user = self.repo.get_user_by_id(db, user_id)
+        except json.JSONDecodeError:
+            logger.exception("Invalid cache JSON. cache_key=%s", key)
+            redis_client.delete(key)
+            raise UserCacheException()
 
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+        except Exception:
+            logger.exception("Failed to read user cache. cache_key=%s", key)
+            raise UserCacheException()
 
-        dto = UserDTO.model_validate(user).model_dump()
+    def _cache_set(self, key: str, value, ttl: int) -> None:
+        if not redis_client:
+            return
 
-        redis_client.setex(cache_key, 300, json.dumps(dto, default=str))
+        try:
+            redis_client.setex(
+                key,
+                ttl,
+                json.dumps(value, default=str),
+            )
 
-        return dto
+        except Exception:
+            logger.exception("Failed to set user cache. cache_key=%s", key)
+            raise UserCacheException()
 
-    # -------------------------
-    # CREATE USER
-    # -------------------------
-    def create_user(self, db, user_data):
+    def _clear_user_cache(self, user_id: UUID) -> None:
+        if not redis_client:
+            return
 
-        user = User(
-            id=uuid4(),
-            name=user_data.name,
-            email=user_data.email,
-            is_active=True
-        )
+        try:
+            redis_client.delete(f"user:{user_id}")
+            self._clear_users_cache()
 
-        created = self.repo.create(db, user)
+        except Exception:
+            logger.exception("Failed to clear user cache. user_id=%s", user_id)
+            raise UserCacheException()
 
-        redis_client.flushdb()
+    def _clear_users_cache(self) -> None:
+        if not redis_client:
+            return
 
-        return UserDTO.model_validate(created).model_dump()
+        try:
+            redis_client.flushdb()
 
-    # -------------------------
-    # UPDATE USER
-    # -------------------------
-    def update_user(self, db, user_id, user_data):
-
-        user = self.repo.get_user_by_id(db, user_id)
-
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        if user_data.name is not None:
-            user.name = user_data.name
-
-        if user_data.email is not None:
-            user.email = user_data.email
-
-        updated = self.repo.update_user(db, user)
-
-        redis_client.delete(f"user:{user_id}")
-        redis_client.flushdb()
-
-        return UserDTO.model_validate(updated).model_dump()
-
-    # -------------------------
-    # DELETE USER
-    # -------------------------
-    def delete_user(self, db, user_id):
-
-        user = self.repo.get_user_by_id(db, user_id)
-        
-        
-
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        self.repo.delete_user(db, user)
-
-        redis_client.delete(f"user:{user_id}")
-        redis_client.flushdb()
-
-        return {"message": "User deleted successfully"}
-
-    # -------------------------
-    # CHANGE STATUS
-    # -------------------------
-    def change_status(self, db, user_id, is_active: bool):
-
-        user = self.repo.get_user_by_id(db, user_id)
-
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        user.is_active = is_active
-
-        updated = self.repo.update_user(db, user)
-
-        redis_client.delete(f"user:{user_id}")
-        redis_client.flushdb()
-
-        return UserDTO.model_validate(updated).model_dump()
+        except Exception:
+            logger.exception("Failed to clear users cache.")
+            raise UserCacheException()
