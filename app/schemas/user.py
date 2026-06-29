@@ -17,7 +17,6 @@ class UserResponse(BaseModel):
     id: UUID
     name: str
     email: EmailStr
-    hashed_password:str
     role : str
     is_active: bool
     create_at: datetime

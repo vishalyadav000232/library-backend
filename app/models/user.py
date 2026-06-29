@@ -19,7 +19,7 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     role = Column(String(50), default="STUDENT")
     is_active = Column(Boolean, default=True)
-    create_at = Column(DateTime, default= lambda : datetime.noe(timezone.utc))
+    create_at = Column(DateTime, default= lambda : datetime.now(timezone.utc))
 
     
     def set_password(self, password: str):

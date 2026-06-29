@@ -63,7 +63,7 @@ def get_booking_by_id(
     current_user: User = Depends(get_current_user),
     booking_service: BookingService = Depends(get_booking_service)
 ):
-    return booking_service.get_booking_for_user(db, booking_id, current_user.id)
+    return booking_service.get_booking_by_id(db, booking_id)
 
 
 
@@ -81,7 +81,7 @@ def cancel_booking(
     current_user: User = Depends(get_current_user),
     booking_service: BookingService = Depends(get_booking_service)
 ):
-    return booking_service.cancel_booking_user(db, booking_id, current_user.id)
+    return booking_service.cancel_booking(db, booking_id)
 
 
 

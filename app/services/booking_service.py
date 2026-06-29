@@ -57,7 +57,7 @@ class BookingService(BookingServiceBase):
         self.repo = repo
         self.seat_repo = SeatRepository()
 
-    async def create_booking(self, db: Session, booking_data):
+    async def create_booking(self, db: Session, booking_data , user_id ) :
         start_date = normalize_date(booking_data.start_date)
         end_date = normalize_date(booking_data.end_date)
         
@@ -90,7 +90,7 @@ class BookingService(BookingServiceBase):
 
         booking = Booking(
             id=uuid.uuid4(),
-            user_id=booking_data.user_id,
+            user_id=user_id,
             seat_id=booking_data.seat_id,
             shift_id=booking_data.shift_id,
             start_date=start_date,
@@ -231,8 +231,7 @@ class BookingService(BookingServiceBase):
     async def create_booking_with_payment(self, db: Session, booking_data, user_id):
 
        
-        booking_data.user_id = user_id
-        booking = await self.create_booking(db, booking_data)
+        booking = await self.create_booking(db, booking_data , user_id=user_id)
 
        
         seat = self.seat_repo.get_by_id(db, booking.seat_id)

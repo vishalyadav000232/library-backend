@@ -6,7 +6,7 @@ from datetime import time
 
 
 class BookingCreate(BaseModel):
-    user_id: UUID = Field(..., example="550e8400-e29b-41d4-a716-446655440000")
+    # user_id: UUID = Field(..., example="550e8400-e29b-41d4-a716-446655440000")
     seat_id: UUID = Field(..., example=1)
     shift_id: UUID = Field(..., example=1)
     start_date: date = Field(..., example="2026-01-09")
