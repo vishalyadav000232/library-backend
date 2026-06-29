@@ -1,4 +1,4 @@
-from backend.app.core.exception.base import AppException
+from app.core.exception.base import AppException
 
 class SeatNotFoundException(AppException):
     def __init__(self):
