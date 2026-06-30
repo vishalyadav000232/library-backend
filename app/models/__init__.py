@@ -3,3 +3,4 @@ from app.models.seats import Seat
 from app.models.shift import Shift
 from app.models.booking import Booking
 from app.models.payment import Payment
+from app.models.refresh_token import RefreshToken
