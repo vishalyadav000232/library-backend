@@ -63,3 +63,4 @@ uvicorn==0.40.0
 razorpay
 redis
 alembic 
+uvicorn[standard]
