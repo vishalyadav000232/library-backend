@@ -129,7 +129,7 @@ class ReportService:
 
             file_path = generate_professional_pdf(
                 data=data,
-                file_name=file_name,
+                filename=file_name,
                 report_type=report_type,
                 start_date=start_date,
                 end_date=end_date,
