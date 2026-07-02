@@ -77,6 +77,8 @@ def create_app() -> FastAPI:
             "http://127.0.0.1:5173",
             "http://localhost:5153",
             "http://127.0.0.1:5153",
+            "http://localhost:5154",
+            "http://127.0.0.1:5154",
         ],
         allow_credentials=True,
         allow_methods=["*"],
