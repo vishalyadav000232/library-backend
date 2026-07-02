@@ -32,9 +32,6 @@ def generate_professional_pdf(data, filename, report_type, start_date, end_date)
     elements = []
     styles = getSampleStyleSheet()
 
-    # -----------------------
-    # Custom Styles
-    # -----------------------
 
     header_style = ParagraphStyle(
         "HeaderStyle",

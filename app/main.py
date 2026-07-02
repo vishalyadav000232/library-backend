@@ -13,7 +13,7 @@ from app.repository.user_repository import UserRepository
 from app.services.auth_services import UserServices
 from app.services.refres_token_service import RefreshTokenService
 from app.core.logging import   configure_logging
-
+from app.websockets.router import router as websocket_router
 
 
 configure_logging()
@@ -86,6 +86,7 @@ def create_app() -> FastAPI:
     )
 
     app.add_middleware(TokenMiddleware)
+    app.include_router(websocket_router, prefix="/api/v1")
 
     app.include_router(api_router)
 
