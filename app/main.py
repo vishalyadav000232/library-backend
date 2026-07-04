@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_router
+from app.websockets.router import router as ws_router
 from app.auth.provider.token_provider import JWTTokenProvider
 from app.core.exception.handlers import register_exception_handlers
 from app.middleware.token_middleware import TokenMiddleware
@@ -13,7 +14,7 @@ from app.repository.user_repository import UserRepository
 from app.services.auth_services import UserServices
 from app.services.refres_token_service import RefreshTokenService
 from app.core.logging import   configure_logging
-from app.websockets.router import router as websocket_router
+
 
 
 configure_logging()
@@ -77,8 +78,6 @@ def create_app() -> FastAPI:
             "http://127.0.0.1:5173",
             "http://localhost:5153",
             "http://127.0.0.1:5153",
-            "http://localhost:5154",
-            "http://127.0.0.1:5154",
         ],
         allow_credentials=True,
         allow_methods=["*"],
@@ -86,9 +85,9 @@ def create_app() -> FastAPI:
     )
 
     app.add_middleware(TokenMiddleware)
-    app.include_router(websocket_router, prefix="/api/v1")
 
     app.include_router(api_router)
+    app.include_router(ws_router)
 
     @app.get("/", tags=["Health"])
     async def root():
