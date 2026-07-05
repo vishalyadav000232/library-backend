@@ -29,11 +29,11 @@ class TokenMiddleware(BaseHTTPMiddleware):
                 user = user_service.get_user_by_id(db, user_id)
 
                 if user:
-                    # 4️⃣ Rotate the token
+                    
                     _, new_refresh_token = refresh_service.rotate(
                         db, refresh_token, user
                     )
-                    # 5️⃣ Attach new refresh_token cookie
+                   
                     response.set_cookie(
                         key="refresh_token",
                         value=new_refresh_token,
